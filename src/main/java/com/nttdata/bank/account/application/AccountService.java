@@ -1,6 +1,7 @@
 package com.nttdata.bank.account.application;
 
 import com.nttdata.bank.account.config.BankRules;
+import com.nttdata.bank.account.config.ProductCatalog;
 import com.nttdata.bank.account.domain.AccountDocument;
 import com.nttdata.bank.account.domain.AccountRepository;
 import com.nttdata.bank.account.domain.AccountRules;
@@ -38,22 +39,22 @@ public class AccountService {
     private final MovementRepository movements;
     private final DebitCardRepository cards;
     private final BankDirectory directory;
-    private final BankRules rules;
+    private final ProductCatalog catalog;
 
     /**
      * @param accounts account collection
      * @param movements ledger
      * @param cards debit cards
      * @param directory customer and credit lookups
-     * @param rules externalized fees and limits
+     * @param catalog account types and product rules stored in Redis
      */
     public AccountService(AccountRepository accounts, MovementRepository movements, DebitCardRepository cards,
-                          BankDirectory directory, BankRules rules) {
+                          BankDirectory directory, ProductCatalog catalog) {
         this.accounts = accounts;
         this.movements = movements;
         this.cards = cards;
         this.directory = directory;
-        this.rules = rules;
+        this.catalog = catalog;
     }
 
     /**
@@ -95,7 +96,7 @@ public class AccountService {
             account.setFixedTermDay(fixedTermDay);
             account.setMaintenanceFee(maintenance(accountType, customer.profile(), product));
             if ("SAVINGS".equals(accountType) && "VIP".equals(customer.profile())) {
-                account.setMinimumDailyAverage(rules.getVip().getMinimumDailyAverage());
+                account.setMinimumDailyAverage(catalog.minimumDailyAverage());
             }
             account.setStatus(ACTIVE);
             account.setBalance(BigDecimal.ZERO);
@@ -230,7 +231,7 @@ public class AccountService {
                 return account;
             }
             if (account.getBalance().compareTo(account.getMinimumDailyAverage()) < 0) {
-                return apply(account, "COMMISSION", rules.getVip().getShortfallPenalty(), null, "VIP average shortfall");
+                return apply(account, "COMMISSION", catalog.shortfallPenalty(), null, "VIP average shortfall");
             }
             return account;
         }).subscribeOn(Schedulers.io());
@@ -433,7 +434,7 @@ public class AccountService {
             }
         }
         BigDecimal commission = COUNTED.contains(type)
-                ? AccountRules.commission(counted, rules.getTransactions().getFreePerMonth(), rules.getTransactions().getCommissionAmount())
+                ? AccountRules.commission(counted, catalog.freePerMonth(), catalog.commissionAmount())
                 : BigDecimal.ZERO;
         BigDecimal signed = signed(type, amount);
         BigDecimal next = account.getBalance().add(signed).subtract(commission);
@@ -478,18 +479,13 @@ public class AccountService {
 
     private BigDecimal maintenance(String accountType, String profile, BankRules.Product product) {
         if ("CHECKING".equals(accountType) && "PYME".equals(profile)) {
-            return rules.getPyme().getMaintenanceFee();
+            return catalog.pymeMaintenanceFee();
         }
         return product.getMaintenanceFee();
     }
 
     private BankRules.Product product(String accountType) {
-        return switch (accountType) {
-            case "SAVINGS" -> rules.getSavings();
-            case "CHECKING" -> rules.getChecking();
-            case "FIXED_TERM" -> rules.getFixedTerm();
-            default -> throw new IllegalArgumentException("Unknown account type");
-        };
+        return catalog.product(accountType);
     }
 
     private void rebuildBalance(String accountId) {
