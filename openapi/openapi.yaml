@@ -1,0 +1,576 @@
+openapi: 3.1.0
+info:
+  title: Accounts
+  description: "Savings, checking, fixed-term accounts, movements, transfers, and\
+    \ debit cards."
+  version: 1.0.0
+servers:
+- url: http://127.0.0.1:8083
+  description: Generated server url
+security:
+- bearer-jwt: []
+paths:
+  /api/v1/movements/{id}:
+    get:
+      tags:
+      - account-controller
+      operationId: movement
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/SingleResponseEntityMovementDocument"
+    put:
+      tags:
+      - account-controller
+      operationId: updateMovement
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DescriptionRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/SingleResponseEntityMovementDocument"
+    delete:
+      tags:
+      - account-controller
+      operationId: deleteMovement
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/SingleResponseEntityVoid"
+  /api/v1/debit-cards/{id}:
+    get:
+      tags:
+      - account-controller
+      operationId: card
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/SingleResponseEntityDebitCardDocument"
+    put:
+      tags:
+      - account-controller
+      operationId: updateCard
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CardUpdateRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/SingleResponseEntityDebitCardDocument"
+    delete:
+      tags:
+      - account-controller
+      operationId: deleteCard
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/SingleResponseEntityVoid"
+  /api/v1/accounts/{id}:
+    get:
+      tags:
+      - account-controller
+      operationId: one
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/SingleResponseEntityAccountDocument"
+    put:
+      tags:
+      - account-controller
+      operationId: update
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/HoldersRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/SingleResponseEntityAccountDocument"
+    delete:
+      tags:
+      - account-controller
+      operationId: delete
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/SingleResponseEntityVoid"
+  /api/v1/transfers:
+    post:
+      tags:
+      - account-controller
+      operationId: transfer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TransferRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/SingleResponseEntityAccountDocument"
+  /api/v1/debit-cards:
+    get:
+      tags:
+      - account-controller
+      operationId: cards
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/SingleResponseEntityListDebitCardDocument"
+    post:
+      tags:
+      - account-controller
+      operationId: createCard
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CardRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/SingleResponseEntityDebitCardDocument"
+  /api/v1/debit-cards/{id}/payments:
+    post:
+      tags:
+      - account-controller
+      operationId: pay
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AmountRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/SingleResponseEntityAccountDocument"
+  /api/v1/debit-cards/{id}/credit-payments:
+    post:
+      tags:
+      - account-controller
+      operationId: payCredit
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreditPaymentRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/SingleResponseEntityAccountDocument"
+  /api/v1/accounts:
+    get:
+      tags:
+      - account-controller
+      operationId: all
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/SingleResponseEntityListAccountDocument"
+    post:
+      tags:
+      - account-controller
+      operationId: open
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OpenAccountRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/SingleResponseEntityAccountDocument"
+  /api/v1/accounts/{id}/withdrawals:
+    post:
+      tags:
+      - account-controller
+      operationId: withdraw
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AmountRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/SingleResponseEntityAccountDocument"
+  /api/v1/accounts/{id}/maintenance-fee:
+    post:
+      tags:
+      - account-controller
+      operationId: fee
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/SingleResponseEntityAccountDocument"
+  /api/v1/accounts/{id}/evaluate-average:
+    post:
+      tags:
+      - account-controller
+      operationId: average
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/SingleResponseEntityAccountDocument"
+  /api/v1/accounts/{id}/deposits:
+    post:
+      tags:
+      - account-controller
+      operationId: deposit
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AmountRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/SingleResponseEntityAccountDocument"
+  /api/v1/movements:
+    get:
+      tags:
+      - account-controller
+      operationId: movements
+      parameters:
+      - name: accountId
+        in: query
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/SingleResponseEntityListMovementDocument"
+  /api/v1/account-reports:
+    get:
+      tags:
+      - account-controller
+      operationId: report
+      parameters:
+      - name: accountId
+        in: query
+        required: true
+        schema:
+          type: string
+      - name: from
+        in: query
+        required: true
+        schema:
+          type: string
+          format: date-time
+      - name: to
+        in: query
+        required: true
+        schema:
+          type: string
+          format: date-time
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/SingleResponseEntityListMovementDocument"
+  /api/v1/account-reports/debit-cards/{id}/last:
+    get:
+      tags:
+      - account-controller
+      operationId: last
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/SingleResponseEntityListMovementDocument"
+components:
+  schemas:
+    DescriptionRequest:
+      type: object
+      properties:
+        description:
+          type: string
+    SingleResponseEntityMovementDocument: {}
+    CardUpdateRequest:
+      type: object
+      properties:
+        mainAccountId:
+          type: string
+          minLength: 1
+      required:
+      - mainAccountId
+    SingleResponseEntityDebitCardDocument: {}
+    HoldersRequest:
+      type: object
+      properties:
+        holderIds:
+          type: array
+          items:
+            type: string
+        signerIds:
+          type: array
+          items:
+            type: string
+    SingleResponseEntityAccountDocument: {}
+    TransferRequest:
+      type: object
+      properties:
+        sourceAccountId:
+          type: string
+          minLength: 1
+        targetAccountId:
+          type: string
+          minLength: 1
+        amount:
+          type: number
+      required:
+      - amount
+      - sourceAccountId
+      - targetAccountId
+    CardRequest:
+      type: object
+      properties:
+        customerId:
+          type: string
+          minLength: 1
+        mainAccountId:
+          type: string
+          minLength: 1
+      required:
+      - customerId
+      - mainAccountId
+    AmountRequest:
+      type: object
+      properties:
+        amount:
+          type: number
+      required:
+      - amount
+    CreditPaymentRequest:
+      type: object
+      properties:
+        amount:
+          type: number
+        productId:
+          type: string
+          minLength: 1
+        productKind:
+          type: string
+          minLength: 1
+        payerCustomerId:
+          type: string
+          minLength: 1
+      required:
+      - amount
+      - payerCustomerId
+      - productId
+      - productKind
+    OpenAccountRequest:
+      type: object
+      properties:
+        customerId:
+          type: string
+          minLength: 1
+        accountType:
+          type: string
+          minLength: 1
+        holderIds:
+          type: array
+          items:
+            type: string
+        signerIds:
+          type: array
+          items:
+            type: string
+        fixedTermDay:
+          type: integer
+          format: int32
+        initialDeposit:
+          type: number
+      required:
+      - accountType
+      - customerId
+    SingleResponseEntityListMovementDocument: {}
+    SingleResponseEntityListDebitCardDocument: {}
+    SingleResponseEntityListAccountDocument: {}
+    SingleResponseEntityVoid: {}
+  securitySchemes:
+    bearer-jwt:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
