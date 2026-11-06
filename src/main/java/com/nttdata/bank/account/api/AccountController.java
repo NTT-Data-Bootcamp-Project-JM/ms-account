@@ -1,5 +1,6 @@
 package com.nttdata.bank.account.api;
 
+import com.nttdata.bank.account.api.contract.AccountApi;
 import com.nttdata.bank.account.application.AccountService;
 import com.nttdata.bank.account.domain.AccountDocument;
 import com.nttdata.bank.account.domain.DebitCardDocument;
@@ -7,20 +8,10 @@ import com.nttdata.bank.account.domain.MovementDocument;
 import com.nttdata.bank.account.infrastructure.AccountEvents;
 import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.schedulers.Schedulers;
-import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.math.BigDecimal;
@@ -29,10 +20,10 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * Reactive API for accounts, transfers, debit cards and account reports.
+ * Implements the account contract generated from {@code openapi/openapi.yaml}.
  */
 @RestController
-public class AccountController {
+public class AccountController implements AccountApi {
 
     private final AccountService accounts;
     private final AccountEvents events;
@@ -47,230 +38,200 @@ public class AccountController {
     }
 
     /**
-     * @param request opening data
-     * @return created account
+     * {@inheritDoc}
      */
-    @PostMapping("/api/v1/accounts")
-    public Single<ResponseEntity<AccountDocument>> open(@Valid @RequestBody OpenAccountRequest request) {
+    @Override
+    public ResponseEntity<AccountDocument> open(OpenAccountRequest request) {
         return accounts.open(request.customerId(), request.accountType(), request.holderIds(), request.signerIds(),
                         request.fixedTermDay(), request.initialDeposit())
-                .map(body -> ResponseEntity.status(HttpStatus.CREATED).body(body));
+                .map(body -> ResponseEntity.status(HttpStatus.CREATED).body(body))
+                .blockingGet();
     }
 
     /**
-     * @return all accounts
+     * {@inheritDoc}
      */
-    @GetMapping("/api/v1/accounts")
-    public Single<ResponseEntity<List<AccountDocument>>> all() {
-        return accounts.findAll().map(ResponseEntity::ok);
+    @Override
+    public ResponseEntity<List<AccountDocument>> all() {
+        return accounts.findAll().map(ResponseEntity::ok).blockingGet();
     }
 
     /**
-     * @param id account identifier
-     * @return one account and its balance
+     * {@inheritDoc}
      */
-    @GetMapping("/api/v1/accounts/{id}")
-    public Single<ResponseEntity<AccountDocument>> one(@PathVariable String id) {
-        return accounts.find(id).map(ResponseEntity::ok);
+    @Override
+    public ResponseEntity<AccountDocument> one(String id) {
+        return accounts.find(id).map(ResponseEntity::ok).blockingGet();
     }
 
     /**
-     * @param id account identifier
-     * @param request holders and signers
-     * @return updated account
+     * {@inheritDoc}
      */
-    @PutMapping("/api/v1/accounts/{id}")
-    public Single<ResponseEntity<AccountDocument>> update(@PathVariable String id, @RequestBody HoldersRequest request) {
-        return accounts.update(id, request.holderIds(), request.signerIds()).map(ResponseEntity::ok);
+    @Override
+    public ResponseEntity<AccountDocument> update(String id, HoldersRequest request) {
+        return accounts.update(id, request.holderIds(), request.signerIds()).map(ResponseEntity::ok).blockingGet();
     }
 
     /**
-     * @param id account identifier
-     * @return empty response
+     * {@inheritDoc}
      */
-    @DeleteMapping("/api/v1/accounts/{id}")
-    public Single<ResponseEntity<Void>> delete(@PathVariable String id) {
-        return accounts.delete(id).map(done -> ResponseEntity.noContent().build());
+    @Override
+    public ResponseEntity<Void> delete(String id) {
+        return accounts.delete(id).map(done -> ResponseEntity.noContent().<Void>build()).blockingGet();
     }
 
     /**
-     * @param id account identifier
-     * @param request amount
-     * @return updated account
+     * {@inheritDoc}
      */
-    @PostMapping("/api/v1/accounts/{id}/deposits")
-    public Single<ResponseEntity<AccountDocument>> deposit(@PathVariable String id, @Valid @RequestBody AmountRequest request) {
-        return accounts.deposit(id, request.amount()).map(ResponseEntity::ok);
+    @Override
+    public ResponseEntity<AccountDocument> deposit(String id, AmountRequest request) {
+        return accounts.deposit(id, request.amount()).map(ResponseEntity::ok).blockingGet();
     }
 
     /**
-     * @param id account identifier
-     * @param request amount
-     * @return updated account
+     * {@inheritDoc}
      */
-    @PostMapping("/api/v1/accounts/{id}/withdrawals")
-    public Single<ResponseEntity<AccountDocument>> withdraw(@PathVariable String id, @Valid @RequestBody AmountRequest request) {
-        return accounts.withdraw(id, request.amount()).map(ResponseEntity::ok);
+    @Override
+    public ResponseEntity<AccountDocument> withdraw(String id, AmountRequest request) {
+        return accounts.withdraw(id, request.amount()).map(ResponseEntity::ok).blockingGet();
     }
 
     /**
-     * @param id account identifier
-     * @return updated account
+     * {@inheritDoc}
      */
-    @PostMapping("/api/v1/accounts/{id}/maintenance-fee")
-    public Single<ResponseEntity<AccountDocument>> fee(@PathVariable String id) {
-        return accounts.chargeMaintenance(id).map(ResponseEntity::ok);
+    @Override
+    public ResponseEntity<AccountDocument> fee(String id) {
+        return accounts.chargeMaintenance(id).map(ResponseEntity::ok).blockingGet();
     }
 
     /**
-     * @param id account identifier
-     * @return updated account
+     * {@inheritDoc}
      */
-    @PostMapping("/api/v1/accounts/{id}/evaluate-average")
-    public Single<ResponseEntity<AccountDocument>> average(@PathVariable String id) {
-        return accounts.evaluateAverage(id).map(ResponseEntity::ok);
+    @Override
+    public ResponseEntity<AccountDocument> average(String id) {
+        return accounts.evaluateAverage(id).map(ResponseEntity::ok).blockingGet();
     }
 
     /**
-     * @param request transfer between two accounts of this bank
-     * @return source account
+     * {@inheritDoc}
      */
-    @PostMapping("/api/v1/transfers")
-    public Single<ResponseEntity<AccountDocument>> transfer(@Valid @RequestBody TransferRequest request) {
-        return accounts.transfer(request.sourceAccountId(), request.targetAccountId(), request.amount()).map(ResponseEntity::ok);
+    @Override
+    public ResponseEntity<AccountDocument> transfer(TransferRequest request) {
+        return accounts.transfer(request.sourceAccountId(), request.targetAccountId(), request.amount())
+                .map(ResponseEntity::ok)
+                .blockingGet();
     }
 
     /**
-     * @param accountId account identifier
-     * @return full ledger
+     * {@inheritDoc}
      */
-    @GetMapping("/api/v1/movements")
-    public Single<ResponseEntity<List<MovementDocument>>> movements(@RequestParam String accountId) {
-        return accounts.movements(accountId).map(ResponseEntity::ok);
+    @Override
+    public ResponseEntity<List<MovementDocument>> movements(String accountId) {
+        return accounts.movements(accountId).map(ResponseEntity::ok).blockingGet();
     }
 
     /**
-     * @param id movement identifier
-     * @return one ledger line
+     * {@inheritDoc}
      */
-    @GetMapping("/api/v1/movements/{id}")
-    public Single<ResponseEntity<MovementDocument>> movement(@PathVariable String id) {
-        return accounts.findMovement(id).map(ResponseEntity::ok);
+    @Override
+    public ResponseEntity<MovementDocument> movement(String id) {
+        return accounts.findMovement(id).map(ResponseEntity::ok).blockingGet();
     }
 
     /**
-     * @param id movement identifier
-     * @param request new description
-     * @return updated movement
+     * {@inheritDoc}
      */
-    @PutMapping("/api/v1/movements/{id}")
-    public Single<ResponseEntity<MovementDocument>> updateMovement(@PathVariable String id, @RequestBody DescriptionRequest request) {
-        return accounts.updateMovement(id, request.description()).map(ResponseEntity::ok);
+    @Override
+    public ResponseEntity<MovementDocument> updateMovement(String id, DescriptionRequest request) {
+        return accounts.updateMovement(id, request.description()).map(ResponseEntity::ok).blockingGet();
     }
 
     /**
-     * @param id movement identifier
-     * @return empty response
+     * {@inheritDoc}
      */
-    @DeleteMapping("/api/v1/movements/{id}")
-    public Single<ResponseEntity<Void>> deleteMovement(@PathVariable String id) {
-        return accounts.deleteMovement(id).map(done -> ResponseEntity.noContent().build());
+    @Override
+    public ResponseEntity<Void> deleteMovement(String id) {
+        return accounts.deleteMovement(id).map(done -> ResponseEntity.noContent().<Void>build()).blockingGet();
     }
 
     /**
-     * @param request card data
-     * @return created debit card
+     * {@inheritDoc}
      */
-    @PostMapping("/api/v1/debit-cards")
-    public Single<ResponseEntity<DebitCardDocument>> createCard(@Valid @RequestBody CardRequest request) {
+    @Override
+    public ResponseEntity<DebitCardDocument> createCard(CardRequest request) {
         return accounts.createCard(request.customerId(), request.mainAccountId())
-                .map(body -> ResponseEntity.status(HttpStatus.CREATED).body(body));
+                .map(body -> ResponseEntity.status(HttpStatus.CREATED).body(body))
+                .blockingGet();
     }
 
     /**
-     * @return all debit cards
+     * {@inheritDoc}
      */
-    @GetMapping("/api/v1/debit-cards")
-    public Single<ResponseEntity<List<DebitCardDocument>>> cards() {
-        return accounts.cards().map(ResponseEntity::ok);
+    @Override
+    public ResponseEntity<List<DebitCardDocument>> cards() {
+        return accounts.cards().map(ResponseEntity::ok).blockingGet();
     }
 
     /**
-     * @param id card identifier
-     * @return one card
+     * {@inheritDoc}
      */
-    @GetMapping("/api/v1/debit-cards/{id}")
-    public Single<ResponseEntity<DebitCardDocument>> card(@PathVariable String id) {
-        return accounts.card(id).map(ResponseEntity::ok);
+    @Override
+    public ResponseEntity<DebitCardDocument> card(String id) {
+        return accounts.card(id).map(ResponseEntity::ok).blockingGet();
     }
 
     /**
-     * @param id card identifier
-     * @param request new main account
-     * @return updated card
+     * {@inheritDoc}
      */
-    @PutMapping("/api/v1/debit-cards/{id}")
-    public Single<ResponseEntity<DebitCardDocument>> updateCard(@PathVariable String id, @Valid @RequestBody CardUpdateRequest request) {
-        return accounts.updateCard(id, request.mainAccountId()).map(ResponseEntity::ok);
+    @Override
+    public ResponseEntity<DebitCardDocument> updateCard(String id, CardUpdateRequest request) {
+        return accounts.updateCard(id, request.mainAccountId()).map(ResponseEntity::ok).blockingGet();
     }
 
     /**
-     * @param id card identifier
-     * @return empty response
+     * {@inheritDoc}
      */
-    @DeleteMapping("/api/v1/debit-cards/{id}")
-    public Single<ResponseEntity<Void>> deleteCard(@PathVariable String id) {
-        return accounts.deleteCard(id).map(done -> ResponseEntity.noContent().build());
+    @Override
+    public ResponseEntity<Void> deleteCard(String id) {
+        return accounts.deleteCard(id).map(done -> ResponseEntity.noContent().<Void>build()).blockingGet();
     }
 
     /**
-     * @param id card identifier
-     * @param request merchant payment
-     * @return debited account
+     * {@inheritDoc}
      */
-    @PostMapping("/api/v1/debit-cards/{id}/payments")
-    public Single<ResponseEntity<AccountDocument>> pay(@PathVariable String id, @Valid @RequestBody AmountRequest request) {
-        return accounts.payWithCard(id, request.amount()).map(ResponseEntity::ok);
+    @Override
+    public ResponseEntity<AccountDocument> pay(String id, AmountRequest request) {
+        return accounts.payWithCard(id, request.amount()).map(ResponseEntity::ok).blockingGet();
     }
 
     /**
-     * Debits the card's main account and emits a Kafka payment for the credit product.
-     *
-     * @param id card identifier
-     * @param request credit product payment
-     * @return debited account
+     * {@inheritDoc}
      */
-    @PostMapping("/api/v1/debit-cards/{id}/credit-payments")
-    public Single<ResponseEntity<AccountDocument>> payCredit(@PathVariable String id, @Valid @RequestBody CreditPaymentRequest request) {
+    @Override
+    public ResponseEntity<AccountDocument> payCredit(String id, CreditPaymentRequest request) {
         return Single.fromCallable(() -> {
             String operationId = UUID.randomUUID().toString();
             AccountDocument account = accounts.debitForCreditPayment(id, request.amount(), operationId);
-            events.requestCreditPayment(operationId, request.productId(), request.productKind(), request.amount(), request.payerCustomerId());
+            events.requestCreditPayment(operationId, request.productId(), request.productKind(), request.amount(),
+                    request.payerCustomerId());
             return account;
-        }).subscribeOn(Schedulers.io()).map(ResponseEntity::ok);
+        }).subscribeOn(Schedulers.io()).map(ResponseEntity::ok).blockingGet();
     }
 
     /**
-     * @param accountId account identifier
-     * @param from interval start
-     * @param to interval end
-     * @return movements in the interval
+     * {@inheritDoc}
      */
-    @GetMapping("/api/v1/account-reports")
-    public Single<ResponseEntity<List<MovementDocument>>> report(
-            @RequestParam String accountId,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant from,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant to) {
-        return accounts.report(accountId, from, to).map(ResponseEntity::ok);
+    @Override
+    public ResponseEntity<List<MovementDocument>> report(String accountId, Instant from, Instant to) {
+        return accounts.report(accountId, from, to).map(ResponseEntity::ok).blockingGet();
     }
 
     /**
-     * @param id debit card identifier
-     * @return ten newest debit-card movements
+     * {@inheritDoc}
      */
-    @GetMapping("/api/v1/account-reports/debit-cards/{id}/last")
-    public Single<ResponseEntity<List<MovementDocument>>> last(@PathVariable String id) {
-        return accounts.lastCardMovements(id).map(ResponseEntity::ok);
+    @Override
+    public ResponseEntity<List<MovementDocument>> last(String id) {
+        return accounts.lastCardMovements(id).map(ResponseEntity::ok).blockingGet();
     }
 
     /**
@@ -309,7 +270,8 @@ public class AccountController {
      * @param targetAccountId account that receives the money
      * @param amount transferred amount
      */
-    public record TransferRequest(@NotBlank String sourceAccountId, @NotBlank String targetAccountId, @NotNull BigDecimal amount) {
+    public record TransferRequest(@NotBlank String sourceAccountId, @NotBlank String targetAccountId,
+                                  @NotNull BigDecimal amount) {
     }
 
     /**

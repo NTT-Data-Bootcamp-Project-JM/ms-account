@@ -77,3 +77,10 @@ eureka:
   instance:
     prefer-ip-address: true
 
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    url: /openapi.yaml
+    disable-swagger-default-url: true
+

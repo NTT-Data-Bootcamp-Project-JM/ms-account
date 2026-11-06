@@ -41,7 +41,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
         String path = request.getRequestURI();
-        if (path.startsWith("/actuator/") || path.startsWith("/v3/api-docs") || path.startsWith("/swagger-ui")) {
+        if (path.startsWith("/actuator/") || path.startsWith("/v3/api-docs")
+                || path.startsWith("/swagger-ui") || path.startsWith("/openapi.yaml")) {
             filterChain.doFilter(request, response);
             return;
         }
