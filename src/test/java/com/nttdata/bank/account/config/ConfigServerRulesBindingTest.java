@@ -15,7 +15,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
- * The product rules live only in the config server. This binds that file onto {@link BankRules}
+ * The product rules live only in the config server. This binds that file onto {@link BankRulesProperties}
  * the same way the account service does at startup.
  */
 class ConfigServerRulesBindingTest {
@@ -27,7 +27,7 @@ class ConfigServerRulesBindingTest {
                 .normalize();
         List<PropertySource<?>> sources = new YamlPropertySourceLoader().load("application", new FileSystemResource(config));
         Binder binder = new Binder(ConfigurationPropertySources.from(sources.get(0)));
-        BankRules rules = binder.bind("bank", Bindable.of(BankRules.class)).get();
+        BankRulesProperties rules = binder.bind("bank", Bindable.of(BankRulesProperties.class)).get();
 
         assertEquals(0, BigDecimal.ZERO.compareTo(rules.getSavings().getMaintenanceFee()));
         assertEquals(10, rules.getSavings().getMaxMovementsPerMonth());

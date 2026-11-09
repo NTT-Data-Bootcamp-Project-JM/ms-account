@@ -20,12 +20,17 @@
         <springdoc.version>2.8.9</springdoc.version>
         <openapi-generator.version>7.13.0</openapi-generator.version>
         <jacoco.version>0.8.12</jacoco.version>
+        <mapstruct.version>1.6.3</mapstruct.version>
         <resilience4j.version>2.2.0</resilience4j.version>
     </properties>
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webflux</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -101,6 +106,11 @@
             <optional>true</optional>
         </dependency>
         <dependency>
+            <groupId>org.mapstruct</groupId>
+            <artifactId>mapstruct</artifactId>
+            <version>${mapstruct.version}</version>
+        </dependency>
+        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
@@ -138,6 +148,16 @@
                         <path>
                             <groupId>org.projectlombok</groupId>
                             <artifactId>lombok</artifactId>
+                        </path>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok-mapstruct-binding</artifactId>
+                            <version>0.2.0</version>
+                        </path>
+                        <path>
+                            <groupId>org.mapstruct</groupId>
+                            <artifactId>mapstruct-processor</artifactId>
+                            <version>${mapstruct.version}</version>
                         </path>
                     </annotationProcessorPaths>
                 </configuration>
@@ -178,7 +198,7 @@
                             <generateSupportingFiles>false</generateSupportingFiles>
                             <generateApiTests>false</generateApiTests>
                             <generateModelTests>false</generateModelTests>
-                            <schemaMappings>OpenAccountRequest=com.nttdata.bank.account.api.AccountController.OpenAccountRequest,HoldersRequest=com.nttdata.bank.account.api.AccountController.HoldersRequest,AmountRequest=com.nttdata.bank.account.api.AccountController.AmountRequest,DescriptionRequest=com.nttdata.bank.account.api.AccountController.DescriptionRequest,TransferRequest=com.nttdata.bank.account.api.AccountController.TransferRequest,CardRequest=com.nttdata.bank.account.api.AccountController.CardRequest,CardUpdateRequest=com.nttdata.bank.account.api.AccountController.CardUpdateRequest,CreditPaymentRequest=com.nttdata.bank.account.api.AccountController.CreditPaymentRequest,Account=com.nttdata.bank.account.domain.AccountDocument,Movement=com.nttdata.bank.account.domain.MovementDocument,DebitCard=com.nttdata.bank.account.domain.DebitCardDocument,ErrorResponse=com.nttdata.bank.account.api.AccountExceptionHandler.ErrorBody</schemaMappings>
+                            <schemaMappings>OpenAccountRequest=com.nttdata.bank.account.api.dto.OpenAccountRequest,HoldersRequest=com.nttdata.bank.account.api.dto.HoldersRequest,AmountRequest=com.nttdata.bank.account.api.dto.AmountRequest,DescriptionRequest=com.nttdata.bank.account.api.dto.DescriptionRequest,TransferRequest=com.nttdata.bank.account.api.dto.TransferRequest,CardRequest=com.nttdata.bank.account.api.dto.CardRequest,CardUpdateRequest=com.nttdata.bank.account.api.dto.CardUpdateRequest,CreditPaymentRequest=com.nttdata.bank.account.api.dto.CreditPaymentRequest,Account=com.nttdata.bank.account.api.dto.AccountResponse,Movement=com.nttdata.bank.account.api.dto.MovementResponse,DebitCard=com.nttdata.bank.account.api.dto.DebitCardResponse,ErrorResponse=com.nttdata.bank.account.api.exception.AccountExceptionHandler.ErrorBody</schemaMappings>
                             <typeMappings>DateTime=java.time.Instant</typeMappings>
                             <importMappings>Instant=java.time.Instant</importMappings>
                             <configOptions>
